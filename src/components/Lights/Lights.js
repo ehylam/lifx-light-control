@@ -7,7 +7,7 @@ const api = process.env.REACT_APP_LIFX_API;
 const Lights = () => {
 
   const [lights, setLights] = useState({light: []})
-  const [settings, setSettings] = useState({setting: {}})
+  const [settings, setSettings] = useState({brightness: {}, colour: {}})
 
   useEffect(() => {
     setLight();
@@ -32,6 +32,18 @@ const Lights = () => {
   }
 
 
+
+
+
+  const getSettings = () => {
+    if(settings.brightness || settings.colour) {
+      lights.light.map((light) => {
+        setLightState(light);
+      })
+    }
+  }
+
+
   const setLightState = async (params) => {
     let userSettings = lightSettings(lights.light);
     console.log(userSettings)
@@ -46,16 +58,18 @@ const Lights = () => {
 
   const lightSettings = (lights) => {
     if(lights.length) {
-      let brightness = settings.setting;
-      if(brightness < 0 || brightness > 1) {
-        brightness = 0
+      let brightness = settings.brightness;
+      let colour = settings.colour;
+      console.log(colour + ' ' + brightness);
+      if(brightness < 0 || brightness > 1 || brightness === null || brightness === undefined || colour === null || colour === undefined) {
+        brightness = 0;
+        colour = 'red';
       }
       let states = lights.map((light) => {
-        console.log(light);
-
         return {
           selector: light.id,
-          brightness: Number(brightness)
+          brightness: Number(brightness),
+          color: colour
         }
       })
       return {
@@ -67,13 +81,17 @@ const Lights = () => {
     }
   }
 
-  const getSettings = () => {
-    if(settings.setting) {
-      console.log(settings.setting);
-      lights.light.map((light) => {
-        setLightState(light);
-      })
-    }
+
+  // Need to reduce these state changers into a single function if possible.
+  // Need to determine what object is being modified.
+  const getBrightnessState = (e) => {
+    let value = e.target.value;
+    setSettings((prevValue) => ({...prevValue, brightness: value}))
+  }
+
+  const getColourState = (e) => {
+    let value = e.target.value;
+    setSettings((prevValue) => ({...prevValue, colour: value}))
   }
 
 
@@ -85,7 +103,10 @@ const Lights = () => {
     ))}
     {/* <button onClick={setLight}>Get Lights</button> */}
     <button onClick={setToggleLight}>Toggle Lights</button>
-    <input type="text" onChange={e => setSettings({setting: e.target.value})}/>
+    <label>Brightness</label>
+    <input type="text" onChange={(e) => getBrightnessState(e)}/>
+    <label>Colour</label>
+    <input type="text" onChange={(e) => getColourState(e)}/>
       <button onClick={getSettings}>Change settings</button>
     </section>
    );
